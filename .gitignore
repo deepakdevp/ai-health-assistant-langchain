@@ -31,7 +31,7 @@ venv/
 ENV/
 env/
 .venv/
-
+.env
 # PyInstaller
 *.manifest
 *.spec
@@ -105,3 +105,4 @@ cython_debug/
 # OS files
 .DS_Store
 Thumbs.db
+.env
