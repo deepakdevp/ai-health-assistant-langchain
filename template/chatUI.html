@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Health Assistant</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: #343541;
+            color: #ececf1;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .header {
+            padding: 12px 20px;
+            border-bottom: 1px solid #40414f;
+            background-color: #343541;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ececf1;
+            text-align: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background-color: #565869;
+            border-radius: 2px;
+        }
+
+        .message {
+            padding: 24px 20px;
+            border-bottom: 1px solid #40414f;
+        }
+
+        .message.user {
+            background-color: #343541;
+        }
+
+        .message.assistant {
+            background-color: #40414f;
+        }
+
+        .message-content {
+            max-width: 760px;
+            margin: 0 auto;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .user-avatar {
+            background-color: #5436da;
+            color: white;
+        }
+
+        .assistant-avatar {
+            background-color: #10a37f;
+            color: white;
+        }
+
+        .message-text {
+            flex: 1;
+            line-height: 1.6;
+            font-size: 16px;
+            color: #ececf1;
+            word-wrap: break-word;
+        }
+
+        .message-text p {
+            margin-bottom: 12px;
+        }
+
+        .message-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-area {
+            padding: 20px;
+            background-color: #343541;
+            border-top: 1px solid #40414f;
+        }
+
+        .input-container {
+            max-width: 760px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .input-wrapper {
+            background-color: #40414f;
+            border: 1px solid #565869;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #10a37f;
+        }
+
+        #messageInput {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ececf1;
+            font-size: 16px;
+            line-height: 1.5;
+            padding: 16px 52px 16px 16px;
+            resize: none;
+            max-height: 200px;
+            min-height: 56px;
+            font-family: inherit;
+        }
+
+        #messageInput::placeholder {
+            color: #8e8ea0;
+        }
+
+        .send-button {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            width: 32px;
+            height: 32px;
+            background-color: #10a37f;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .send-button:hover {
+            background-color: #0d8f6f;
+        }
+
+        .send-button:disabled {
+            background-color: #565869;
+            cursor: not-allowed;
+        }
+
+        .send-button svg {
+            width: 16px;
+            height: 16px;
+            color: white;
+        }
+
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .welcome-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #10a37f;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 32px;
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #ececf1;
+        }
+
+        .welcome-subtitle {
+            font-size: 16px;
+            color: #8e8ea0;
+            margin-bottom: 32px;
+            max-width: 500px;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 24px 20px;
+            background-color: #40414f;
+            border-bottom: 1px solid #40414f;
+        }
+
+        .typing-indicator .message-content {
+            max-width: 760px;
+            margin: 0 auto;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            padding: 8px 0;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background-color: #8e8ea0;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.3;
+            }
+            30% {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .message {
+                padding: 20px 16px;
+            }
+
+            .input-area {
+                padding: 16px;
+            }
+
+            .message-content {
+                gap: 12px;
+            }
+
+            .avatar {
+                width: 28px;
+                height: 28px;
+                font-size: 16px;
+            }
+
+            .message-text {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="header">
+            <h1>AI Health Assistant</h1>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-icon">🏥</div>
+                <h2 class="welcome-title">Welcome to AI Health Assistant</h2>
+                <p class="welcome-subtitle">Ask me any medical questions and I'll help you with information from my knowledge base.</p>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="message-content">
+                <div class="avatar assistant-avatar">AI</div>
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="input-container">
+                <form id="messageForm">
+                    <div class="input-wrapper">
+                        <textarea id="messageInput" placeholder="Ask me anything about health..." rows="1"></textarea>
+                        <button type="submit" class="send-button" id="sendButton">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            let isFirstMessage = true;
+
+            // Auto-resize textarea
+            function autoResizeTextarea(textarea) {
+                textarea.style.height = 'auto';
+                textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+            }
+
+            // Handle textarea input
+            $('#messageInput').on('input', function() {
+                autoResizeTextarea(this);
+            });
+
+            // Handle Enter key
+            $('#messageInput').on('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    $('#messageForm').submit();
+                }
+            });
+
+            // Handle form submission
+            $('#messageForm').on('submit', function(event) {
+                event.preventDefault();
+                
+                const messageText = $('#messageInput').val().trim();
+                if (!messageText) return;
+
+                // Hide welcome screen on first message
+                if (isFirstMessage) {
+                    $('#welcomeScreen').hide();
+                    isFirstMessage = false;
+                }
+
+                // Add user message
+                const userMessage = `
+                    <div class="message user">
+                        <div class="message-content">
+                            <div class="avatar user-avatar">You</div>
+                            <div class="message-text">${messageText}</div>
+                        </div>
+                    </div>
+                `;
+                $('#chatMessages').append(userMessage);
+
+                // Clear input and reset height
+                $('#messageInput').val('').css('height', '56px');
+                $('#sendButton').prop('disabled', true);
+
+                // Show typing indicator
+                $('#typingIndicator').show();
+
+                // Scroll to bottom
+                $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+
+                // Send AJAX request
+                $.ajax({
+                    data: { msg: messageText },
+                    type: "POST",
+                    url: "/get",
+                    timeout: 30000
+                }).done(function(data) {
+                    // Hide typing indicator
+                    $('#typingIndicator').hide();
+
+                    // Add assistant message
+                    const assistantMessage = `
+                        <div class="message assistant">
+                            <div class="message-content">
+                                <div class="avatar assistant-avatar">AI</div>
+                                <div class="message-text">${data}</div>
+                            </div>
+                        </div>
+                    `;
+                    $('#chatMessages').append(assistantMessage);
+
+                    // Scroll to bottom
+                    $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+                }).fail(function() {
+                    // Hide typing indicator
+                    $('#typingIndicator').hide();
+
+                    // Add error message
+                    const errorMessage = `
+                        <div class="message assistant">
+                            <div class="message-content">
+                                <div class="avatar assistant-avatar">AI</div>
+                                <div class="message-text">Sorry, I'm having trouble responding right now. Please try again.</div>
+                            </div>
+                        </div>
+                    `;
+                    $('#chatMessages').append(errorMessage);
+
+                    // Scroll to bottom
+                    $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+                }).always(function() {
+                    // Re-enable send button
+                    $('#sendButton').prop('disabled', false);
+                });
+            });
+
+            // Enable/disable send button based on input
+            $('#messageInput').on('input', function() {
+                const hasText = $(this).val().trim().length > 0;
+                $('#sendButton').prop('disabled', !hasText);
+            });
+
+            // Initial state
+            $('#sendButton').prop('disabled', true);
+        });
+    </script>
+</body>
+</html>
