@@ -1,6 +1,6 @@
 # AI Health Assistant
 
-![AI Health Assistant](Screenshot%202025-08-18%20at%208.56.21%20PM.png)
+![AI Health Assistant](project_image.png)
 
 A sophisticated AI-powered health assistant built with LangChain and Flask, providing medical question-answering capabilities using Retrieval-Augmented Generation (RAG). The application features a modern, macOS-inspired user interface and leverages OpenAI's GPT-4o for intelligent health-related responses.
 
